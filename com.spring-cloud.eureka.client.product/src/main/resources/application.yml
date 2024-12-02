@@ -1,6 +1,10 @@
 spring:
   application:
     name: product-service
+  redis:
+    host: localhost
+    port: 6379
+    password: systempass
 server:
   port: 19093
 eureka:
