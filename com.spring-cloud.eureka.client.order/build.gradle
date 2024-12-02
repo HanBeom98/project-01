@@ -33,6 +33,8 @@ dependencies {
 	annotationProcessor "com.querydsl:querydsl-apt:${querydslVersion}:jakarta"
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
 
 	runtimeOnly 'org.hsqldb:hsqldb'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'

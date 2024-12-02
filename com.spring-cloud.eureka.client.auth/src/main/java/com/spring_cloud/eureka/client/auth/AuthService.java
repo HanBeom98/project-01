@@ -1,5 +1,6 @@
 package com.spring_cloud.eureka.client.auth;
 
+import com.spring_cloud.eureka.client.auth.UserRepository;
 import com.spring_cloud.eureka.client.auth.core.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 @Service
 public class AuthService {
@@ -25,12 +27,6 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * AuthService 생성자.
-     * Base64 URL 인코딩된 비밀 키를 디코딩하여 HMAC-SHA 알고리즘에 적합한 SecretKey 객체를 생성합니다.
-     *
-     * @param secretKey Base64 URL 인코딩된 비밀 키
-     */
     public AuthService(@Value("${service.jwt.secret-key}") String secretKey,
                        UserRepository userRepository,
                        PasswordEncoder passwordEncoder) {
@@ -39,13 +35,29 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    /**
-     * 사용자 ID를 받아 JWT 액세스 토큰을 생성합니다.
-     *
-     * @param userId 사용자 ID
-     * @return 생성된 JWT 액세스 토큰
-     */
-    public String createAccessToken(String userId, String role) {
+    public User signUp(User user) {
+        validateUserInput(user);
+
+        if (userRepository.existsById(user.getUserId())) {
+            throw new IllegalArgumentException("User ID already exists");
+        }
+
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+
+    public String signIn(String userId, String password) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID or password"));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("Invalid user ID or password");
+        }
+
+        return createAccessToken(user.getUserId(), user.getRole());
+    }
+
+    private String createAccessToken(String userId, String role) {
         return Jwts.builder()
                 .claim("user_id", userId)
                 .claim("role", role)
@@ -56,32 +68,13 @@ public class AuthService {
                 .compact();
     }
 
-    /**
-     * 사용자 등록
-     *
-     * @param user 사용자 정보
-     * @return 저장된 사용자
-     */
-    public User signUp(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
-    }
-
-    /**
-     * 사용자 인증
-     *
-     * @param userId 사용자 ID
-     * @param password 비밀번호
-     * @return JWT 액세스 토큰
-     */
-    public String signIn(String userId, String password) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user ID or password"));
-
-        if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new IllegalArgumentException("Invalid user ID or password");
+    private void validateUserInput(User user) {
+        if (!Pattern.matches("^[a-zA-Z0-9]{3,20}$", user.getUsername())) {
+            throw new IllegalArgumentException("Username must be 3-20 characters long and contain only letters and numbers.");
         }
 
-        return createAccessToken(user.getUserId(), user.getRole());
+        if (!Pattern.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", user.getPassword())) {
+            throw new IllegalArgumentException("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.");
+        }
     }
 }
