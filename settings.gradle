@@ -1,1 +1,8 @@
 rootProject.name = 'smaple'
+
+
+include 'com.spring-cloud.eureka.client.auth'
+include 'com.spring-cloud.eureka.client.gateway'
+include 'com.spring-cloud.eureka.client.order'
+include 'com.spring-cloud.eureka.client.product'
+include 'com.spring-cloud.eureka.server'
