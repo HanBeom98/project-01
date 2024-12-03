@@ -1,16 +1,13 @@
 spring:
   application:
     name: order-service
-  redis:  # Redis 설정은 spring 아래에 위치해야 합니다
-    host: localhost
-    port: 6379
-    password: systempass
 server:
   port: 19092
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:19090/eureka/
+
 management:
   zipkin:
     tracing:
