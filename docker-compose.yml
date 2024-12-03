@@ -1,6 +1,4 @@
-version: '3.8'
 services:
-  # Redis 서비스
   redis-stack:
     image: redis/redis-stack
     container_name: redis-stack-compose
@@ -8,28 +6,5 @@ services:
     environment:
       REDIS_ARGS: "--requirepass systempass"
     ports:
-      - "6379:6379"
-      - "8001:8001"
-
-  # Zipkin 서비스
-  zipkin:
-    image: openzipkin/zipkin:latest
-    container_name: zipkin
-    restart: always
-    ports:
-      - "9411:9411"
-
-  # 유레카 서버 서비스
-  eureka-server:
-    build:
-      context: .  # 현재 디렉토리에서 Dockerfile을 찾음
-    container_name: eureka-server
-    restart: always
-    ports:
-      - "8761:8761"
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
+      - 6379:6379
+      - 8001:8001
